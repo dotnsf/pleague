@@ -293,32 +293,44 @@ function toSVG( v1, v2 ){
     arr2 = i2a( parseInt( v2 ) );
   }
 
-  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">';
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">';
   if( Array.isArray( arr1 ) && arr1.length == 10 ){
-    svg += '<g font-size="10">';
-    svg += '<text x="15" y="40">' + ( arr1[0] == 1 ? '○' : '①' ) + '</text>';
-    svg += '<text x="10" y="30">' + ( arr1[1] == 1 ? '○' : '②' ) + '</text>';
-    svg += '<text x="20" y="30">' + ( arr1[2] == 1 ? '○' : '③' ) + '</text>';
-    svg += '<text x="5" y="20">' + ( arr1[3] == 1 ? '○' : '④' ) + '</text>';
-    svg += '<text x="15" y="20">' + ( arr1[4] == 1 ? '○' : '⑤' ) + '</text>';
-    svg += '<text x="25" y="20">' + ( arr1[5] == 1 ? '○' : '⑥' ) + '</text>';
-    svg += '<text x="0" y="10">' + ( arr1[6] == 1 ? '○' : '⑦' ) + '</text>';
-    svg += '<text x="10" y="10">' + ( arr1[7] == 1 ? '○' : '⑧' ) + '</text>';
-    svg += '<text x="20" y="10">' + ( arr1[8] == 1 ? '○' : '⑨' ) + '</text>';
-    svg += '<text x="30" y="10">' + ( arr1[9] == 1 ? '○' : '⑩' ) + '</text>';
+    svg += '<g font-size="20">';
+/*
+    svg += '<text x="30" y="80">' + ( arr1[0] == 1 ? '○' : '①' ) + '</text>';
+    svg += '<text x="20" y="60">' + ( arr1[1] == 1 ? '○' : '②' ) + '</text>';
+    svg += '<text x="40" y="60">' + ( arr1[2] == 1 ? '○' : '③' ) + '</text>';
+    svg += '<text x="10" y="40">' + ( arr1[3] == 1 ? '○' : '④' ) + '</text>';
+    svg += '<text x="30" y="40">' + ( arr1[4] == 1 ? '○' : '⑤' ) + '</text>';
+    svg += '<text x="50" y="40">' + ( arr1[5] == 1 ? '○' : '⑥' ) + '</text>';
+    svg += '<text x="0" y="20">' + ( arr1[6] == 1 ? '○' : '⑦' ) + '</text>';
+    svg += '<text x="20" y="20">' + ( arr1[7] == 1 ? '○' : '⑧' ) + '</text>';
+    svg += '<text x="40" y="20">' + ( arr1[8] == 1 ? '○' : '⑨' ) + '</text>';
+    svg += '<text x="60" y="20">' + ( arr1[9] == 1 ? '○' : '⑩' ) + '</text>';
+*/
+    svg += '<text x="30" y="78">' + ( arr1[0] == 1 ? '○' : '①' ) + '</text>';
+    svg += '<text x="20" y="58">' + ( arr1[1] == 1 ? '○' : '②' ) + '</text>';
+    svg += '<text x="40" y="58">' + ( arr1[2] == 1 ? '○' : '③' ) + '</text>';
+    svg += '<text x="10" y="38">' + ( arr1[3] == 1 ? '○' : '④' ) + '</text>';
+    svg += '<text x="30" y="38">' + ( arr1[4] == 1 ? '○' : '⑤' ) + '</text>';
+    svg += '<text x="50" y="38">' + ( arr1[5] == 1 ? '○' : '⑥' ) + '</text>';
+    svg += '<text x="0" y="18">' + ( arr1[6] == 1 ? '○' : '⑦' ) + '</text>';
+    svg += '<text x="20" y="18">' + ( arr1[7] == 1 ? '○' : '⑧' ) + '</text>';
+    svg += '<text x="40" y="18">' + ( arr1[8] == 1 ? '○' : '⑨' ) + '</text>';
+    svg += '<text x="60" y="18">' + ( arr1[9] == 1 ? '○' : '⑩' ) + '</text>';
     svg += '</g>';
 
     if( Array.isArray( arr2 ) && arr2.length == 10 ){
-      if( arr2[0] == 1 ){ svg += '<line x1="15" y1="40" x2="25" y2="30" stroke="#000000"/>'; }
-      if( arr2[1] == 1 ){ svg += '<line x1="10" y1="30" x2="20" y2="20" stroke="#000000"/>'; }
-      if( arr2[2] == 1 ){ svg += '<line x1="20" y1="30" x2="30" y2="20" stroke="#000000"/>'; }
-      if( arr2[3] == 1 ){ svg += '<line x1="5" y1="20" x2="15" y2="10" stroke="#000000"/>'; }
-      if( arr2[4] == 1 ){ svg += '<line x1="15" y1="20" x2="25" y2="10" stroke="#000000"/>'; }
-      if( arr2[5] == 1 ){ svg += '<line x1="25" y1="20" x2="35" y2="10" stroke="#000000"/>'; }
-      if( arr2[6] == 1 ){ svg += '<line x1="0" y1="10" x2="10" y2="0" stroke="#000000"/>'; }
-      if( arr2[7] == 1 ){ svg += '<line x1="10" y1="10" x2="20" y2="0" stroke="#000000"/>'; }
-      if( arr2[8] == 1 ){ svg += '<line x1="20" y1="10" x2="30" y2="0" stroke="#000000"/>'; }
-      if( arr2[9] == 1 ){ svg += '<line x1="30" y1="10" x2="40" y2="0" stroke="#000000"/>'; }
+      if( arr2[0] == 1 ){ svg += '<line x1="30" y1="80" x2="50" y2="60" stroke="#000000"/>'; }
+      if( arr2[1] == 1 ){ svg += '<line x1="20" y1="60" x2="40" y2="40" stroke="#000000"/>'; }
+      if( arr2[2] == 1 ){ svg += '<line x1="40" y1="60" x2="60" y2="40" stroke="#000000"/>'; }
+      if( arr2[3] == 1 ){ svg += '<line x1="10" y1="40" x2="30" y2="20" stroke="#000000"/>'; }
+      if( arr2[4] == 1 ){ svg += '<line x1="30" y1="40" x2="50" y2="20" stroke="#000000"/>'; }
+      if( arr2[5] == 1 ){ svg += '<line x1="50" y1="40" x2="70" y2="20" stroke="#000000"/>'; }
+      if( arr2[6] == 1 ){ svg += '<line x1="0" y1="20" x2="20" y2="0" stroke="#000000"/>'; }
+      if( arr2[7] == 1 ){ svg += '<line x1="20" y1="20" x2="40" y2="0" stroke="#000000"/>'; }
+      if( arr2[8] == 1 ){ svg += '<line x1="40" y1="20" x2="60" y2="0" stroke="#000000"/>'; }
+      if( arr2[9] == 1 ){ svg += '<line x1="60" y1="20" x2="80" y2="0" stroke="#000000"/>'; }
     }
   }
   svg += '</svg>';
