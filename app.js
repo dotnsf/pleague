@@ -46,9 +46,17 @@ app.get( '/games', function( req, res ){
   var number = req.query.number;
   var stage = req.query.stage;
   var block = req.query.block;
+  var member_id = req.query.member_id;
 
   var where = '';
   var params = [];
+  if( member_id ){
+    if( where ){
+      where += ' and';
+    }
+    where = ' id in ( select game_id from game_scores where member_id = ? )';
+    params.push( member_id );
+  }
   if( season ){
     if( where ){
       where += ' and';
