@@ -109,6 +109,17 @@ function member( member_id ){
       console.log( err );
     }
   });
+
+  $.ajax({
+    type: 'GET',
+    url: '/stats?member_id=' + member_id,
+    success: function( result ){
+      console.log( result );
+    },
+    error: function( err ){
+      console.log( err );
+    }
+  });
 }
 
 function game( game_id ){
@@ -176,7 +187,7 @@ function score( game_id ){
         for( var i = 1; i <= 3; i ++ ){
           //. name
           var ss = $('#scores_table_'+i+'_0').text();
-          var member_id = parseInt( ss ); 
+          var member_id = parseInt( ss );
           members.forEach( function( member ){
             if( member_id == member.id ){
               $('#scores_table_'+i+'_0').html( member.name );
@@ -196,7 +207,7 @@ function score( game_id ){
                 var s2 = $('#scores_table_'+i+'_'+j+'_2').text();
                 var p2 = parseInt( s2 );
                 p += p2;
-  
+
                 var s3 = $('#scores_table_'+i+'_'+j+'_3').text();
                 var p3 = parseInt( s3 );
                 p += p3;
@@ -204,7 +215,7 @@ function score( game_id ){
                 var s2 = $('#scores_table_'+i+'_'+(j+1)+'_1').text();
                 var p2 = parseInt( s2 );
                 p += p2;
-  
+
                 var s3 = $('#scores_table_'+i+'_'+(j+1)+'_2').text();
                 var p3 = parseInt( s3 );
                 p += p3;
@@ -212,7 +223,7 @@ function score( game_id ){
                 var s2 = $('#scores_table_'+i+'_'+(j+1)+'_1').text();
                 var p2 = parseInt( s2 );
                 p += p2;
-  
+
                 if( p2 == 10 ){
                   var s3 = $('#scores_table_'+i+'_'+(j+2)+'_1').text();
                   var p3 = parseInt( s3 );
