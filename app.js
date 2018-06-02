@@ -890,6 +890,12 @@ app.get( '/stats', function( req, res ){
 
                           res.write( JSON.stringify( {
                             status: true,
+                            score: score0,
+                            scoreR: scoreR,
+                            scoreL: scoreL,
+                            pins: pins0,
+                            pinsR: pinsR,
+                            pinsL: pinsL,
                             avg_score: avg_score,
                             verb_score: verb_score,
                             stdev_score: stdev_score,
