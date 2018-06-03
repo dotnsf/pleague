@@ -110,11 +110,23 @@ function member( member_id ){
     }
   });
 
+  //. stats
   $.ajax({
     type: 'GET',
     url: '/stats?member_id=' + member_id,
-    success: function( result ){
-      console.log( result );
+    success: function( one_result ){
+      console.log( one_result );
+
+      $.ajax({
+        type: 'GET',
+        url: '/stats',
+        success: function( all_result ){
+          console.log( all_result );
+        },
+        error: function( err ){
+          console.log( err );
+        }
+      });
     },
     error: function( err ){
       console.log( err );
@@ -196,6 +208,8 @@ function score( game_id ){
 
           //. point
           for( var j = 1; j <= 10; j ++ ){
+            //. ストライクしたフレーム全てにスペアマークが付いている？
+
             var s1 = $('#scores_table_'+i+'_'+j+'_1').text();
             var p1 = parseInt( s1 );
             var p = p1;
