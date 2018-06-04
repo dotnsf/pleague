@@ -233,6 +233,7 @@ app.get( '/spare.svg', function( req, res ){
 app.get( '/stats', function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
   var member_id = req.query.member_id;
+  console.log( 'GET /stats?member_id=' + member_id );
 
   //. ゲームスコアと一投目のピンカウント平均, 分散, 標準偏差
   var score0 = [], scoreR = [], scoreL = [];
@@ -275,8 +276,7 @@ app.get( '/stats', function( req, res ){
       console.log( 'error1' );
       console.log( error1 );
     }else{
-      //console.log( 'games' );
-      //console.log( games );
+      console.log( '#games: ' + games.length );
       var games_length = games.length;
       var games_count = 0;
       games.forEach( function( game ){
@@ -295,8 +295,7 @@ app.get( '/stats', function( req, res ){
             console.log( 'error2' );
             console.log( error2 );
           }else{
-            //console.log( 'game_scores' );
-            //console.log( game_scores );
+            console.log( '#game_scores: ' + game_scores.length );
             var game_scores_length = game_scores.length;
             var game_scores_count = 0;
 
@@ -324,8 +323,8 @@ app.get( '/stats', function( req, res ){
                 console.log( 'error3' );
                 console.log( error3 );
               }else{
-                //console.log( 'flame_scores' );
-                //console.log( flame_scores );
+                //. flame_scores が準備できていないケースだと、ここは 0 になり、Response を返す処理に行かない
+                console.log( '#flame_scores: ' + flame_scores.length );
                 var flame_scores_length = flame_scores.length;
                 var flame_scores_count = 0;
 
@@ -811,6 +810,11 @@ app.get( '/stats', function( req, res ){
                     }
                   }
 
+                  console.log( ' flame_scores: ' + flame_scores_count + '/' + flame_scores_length );
+                  console.log( ' game_scores: ' + game_scores_count + '/' + game_scores_length );
+                  console.log( ' games: ' + games_count + '/' + games_length );
+
+                  /*
                   flame_scores_count ++;
                   if( flame_scores_count == flame_scores_length ){
                     game_scores_count ++;
@@ -908,10 +912,137 @@ app.get( '/stats', function( req, res ){
                           pinsR: pinsR,
                           pinsL: pinsL,
                           avg_score: avg_score,
-                          verb_score: verb_score,
+                          va_score: va_score,
                           stdev_score: stdev_score,
                           avg_pins: avg_pins,
-                          verb_pins: verb_pins,
+                          va_pins: va_pins,
+                          stdev_pins: stdev_pins,
+                          strike_challenge_flames: strike_challenge_flames,
+                          spare_challenge_flames: spare_challenge_flames,
+                          strike_flames: strike_flames,
+                          spare_flames: spare_flames,
+                          open_flames: open_flames,
+                          split_flames: split_flames,
+                          split_cover_flames: split_cover_flames,
+                          leave_right_flames: leave_right_flames,
+                          leave_left_flames: leave_left_flames
+                        }, 2, null ) );
+                        res.end();
+                      }
+                    }
+                  }
+                  */
+
+                  prev2_score = prev1_score;
+                  prev2_split = prev1_split;
+                  prev2_pins = prev1_pins;
+                  prev1_score = flame_score.score;
+                  prev1_split = flame_score.split;
+                  prev1_pins = flame_score.pins;
+                });  //. flame_scores.forEach( function( flame_score ){
+              }
+
+                  flame_scores_count ++;
+                  if( flame_scores_count == flame_scores_length ){
+                    game_scores_count ++;
+                    if( game_scores_count == game_scores_length ){
+                      games_count ++;
+                      if( games_count == games_length ){
+                        //. avg
+                        if( score0.length > 0 ){
+                          for( var i = 0; i < score0.length; i ++ ){
+                            avg_score[0] += score0[i];
+                          }
+                          avg_score[0] /= score0.length;
+                        }
+                        if( scoreR.length > 0 ){
+                          for( var i = 0; i < scoreR.length; i ++ ){
+                            avg_score[1] += scoreR[i];
+                          }
+                          avg_score[1] /= scoreR.length;
+                        }
+                        if( scoreL.length > 0 ){
+                          for( var i = 0; i < scoreL.length; i ++ ){
+                            avg_score[2] += scoreL[i];
+                          }
+                          avg_score[2] /= scoreL.length;
+                        }
+                        if( pins0.length > 0 ){
+                          for( var i = 0; i < pins0.length; i ++ ){
+                            avg_pins[0] += pins0[i];
+                          }
+                          avg_pins[0] /= pins0.length;
+                        }
+                        if( pinsR.length > 0 ){
+                          for( var i = 0; i < pinsR.length; i ++ ){
+                            avg_pins[1] += pinsR[i];
+                          }
+                          avg_pins[1] /= pinsR.length;
+                        }
+                        if( pinsL.length > 0 ){
+                          for( var i = 0; i < pinsL.length; i ++ ){
+                            avg_pins[2] += pinsL[i];
+                          }
+                          avg_pins[2] /= pinsL.length;
+                        }
+
+                        //. va, stdev
+                        if( score0.length > 0 ){
+                          for( var i = 0; i < score0.length; i ++ ){
+                            va_score[0] += ( ( score0[i] - avg_score[0] ) * ( score0[i] - avg_score[0] ) );
+                          }
+                          va_score[0] /= score0.length;
+                          stdev_score[0] = Math.sqrt( va_score[0] );
+                        }
+                        if( scoreR.length > 0 ){
+                          for( var i = 0; i < scoreR.length; i ++ ){
+                            va_score[1] += ( ( scoreR[i] - avg_score[1] ) * ( scoreR[i] - avg_score[1] ) );
+                          }
+                          va_score[1] /= scoreR.length;
+                          stdev_score[1] = Math.sqrt( va_score[1] );
+                        }
+                        if( scoreL.length > 0 ){
+                          for( var i = 0; i < scoreL.length; i ++ ){
+                            va_score[2] += ( ( scoreL[i] - avg_score[2] ) * ( scoreL[i] - avg_score[2] ) );
+                          }
+                          va_score[2] /= scoreL.length;
+                          stdev_score[2] = Math.sqrt( va_score[2] );
+                        }
+                        if( pins0.length > 0 ){
+                          for( var i = 0; i < pins0.length; i ++ ){
+                            va_pins[0] += ( ( pins0[i] - avg_pins[0] ) * ( pins0[i] - avg_pins[0] ) );
+                          }
+                          va_pins[0] /= pins0.length;
+                          stdev_pins[0] = Math.sqrt( va_pins[0] );
+                        }
+                        if( pinsR.length > 0 ){
+                          for( var i = 0; i < pinsR.length; i ++ ){
+                            va_pins[1] += ( ( pinsR[i] - avg_pins[1] ) * ( pinsR[i] - avg_pins[1] ) );
+                          }
+                          va_pins[1] /= pinsR.length;
+                          stdev_pins[1] = Math.sqrt( va_pins[1] );
+                        }
+                        if( pinsL.length > 0 ){
+                          for( var i = 0; i < pinsL.length; i ++ ){
+                            va_pins[2] += ( ( pinsL[i] - avg_pins[2] ) * ( pinsL[i] - avg_pins[2] ) );
+                          }
+                          va_pins[2] /= pinsL.length;
+                          stdev_pins[2] = Math.sqrt( va_pins[2] );
+                        }
+
+                        res.write( JSON.stringify( {
+                          status: true,
+                          score: score0,
+                          scoreR: scoreR,
+                          scoreL: scoreL,
+                          pins: pins0,
+                          pinsR: pinsR,
+                          pinsL: pinsL,
+                          avg_score: avg_score,
+                          va_score: va_score,
+                          stdev_score: stdev_score,
+                          avg_pins: avg_pins,
+                          va_pins: va_pins,
                           stdev_pins: stdev_pins,
                           strike_challenge_flames: strike_challenge_flames,
                           spare_challenge_flames: spare_challenge_flames,
@@ -928,15 +1059,7 @@ app.get( '/stats', function( req, res ){
                     }
                   }
 
-                  prev2_score = prev1_score;
-                  prev2_split = prev1_split;
-                  prev2_pins = prev1_pins;
-                  prev1_score = flame_score.score;
-                  prev1_split = flame_score.split;
-                  prev1_pins = flame_score.pins;
-                });
-              }
-            });
+            });  //. connection.query( sql3, params3, function( error3, flame_scores, fields3 ){
           }
         });
       });
