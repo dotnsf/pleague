@@ -117,6 +117,7 @@ function member( member_id ){
     success: function( one_result ){
       console.log( one_result );
 
+/*
       $.ajax({
         type: 'GET',
         url: '/stats',
@@ -127,6 +128,7 @@ function member( member_id ){
           console.log( err );
         }
       });
+*/
     },
     error: function( err ){
       console.log( err );
@@ -258,8 +260,7 @@ function score( game_id ){
               var s2 = $('#scores_table_'+i+'_'+j+'_2').text();
               var p2 = parseInt( s2 );
               p += p2;
-              if( p1 + p2 == 10 ){
-              //if( p == 10 ){
+              if( p1 != 10 && p1 + p2 == 10 ){ //if( p == 10 ){
                 //. Spare
                 $('#scores_table_'+i+'_'+j+'_2').html( '<img width="15" height="15" src="./spare.svg"/>' );
                 if( j < 10 ){
