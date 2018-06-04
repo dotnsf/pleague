@@ -30,17 +30,32 @@ function init(){
     var $p = $(this).children( 'p' );
     if( !$p || $p.length == 0 ){
       var pins1 = $(this).attr( 'pins1' );
-      var pins2 = $(this).attr( 'pins2' );
 
       if( pins1 ){
         //console.log( 'pins1='+pins1+', pins2='+pins2 );
         var url = '/svg?pins1=' + pins1;
+        var pins2 = $(this).attr( 'pins2' );
         if( pins2 ){
           url += ( '&pins2=' + pins2 );
+          var pins3 = $(this).attr( 'pins3' );
+          if( pins3 ){
+            url += ( '&pins3=' + pins3 );
+          }
         }
         //console.log( 'hover: url='+url );
 
-        var p = '<p class="arrow_box"><img width="80" height="80" src="' + url + '"/></p>';
+        var img_width = 80;
+        var id = $(this).attr( 'id' );
+        var n = id.lastIndexOf( '_' );
+        if( n > -1 ){
+          var sFlame = id.substring( n + 1 );
+          var flame = parseInt( sFlame );
+          if( flame == 10 ){
+            img_width = 240;
+          }
+        }
+
+        var p = '<p class="arrow_box"><img width="' + img_width + '" height="80" src="' + url + '"/></p>';
         $(this).append( p );
       }
     }
@@ -117,7 +132,7 @@ function member( member_id ){
     success: function( one_result ){
       console.log( one_result );
 
-/*
+      /*
       $.ajax({
         type: 'GET',
         url: '/stats',
@@ -128,7 +143,7 @@ function member( member_id ){
           console.log( err );
         }
       });
-*/
+      */
     },
     error: function( err ){
       console.log( err );
@@ -220,10 +235,18 @@ function score( game_id ){
               if( j == 10 ){
                 var s2 = $('#scores_table_'+i+'_'+j+'_2').text();
                 var p2 = parseInt( s2 );
+                if( p2 == 10 ){
+                  $('#scores_table_'+i+'_'+j+'_2').html( '<img width="15" height="15" src="./strike.svg"/>' );
+                }
                 p += p2;
 
                 var s3 = $('#scores_table_'+i+'_'+j+'_3').text();
                 var p3 = parseInt( s3 );
+                if( p2 == 10 && p3 == 10 ){
+                  $('#scores_table_'+i+'_'+j+'_3').html( '<img width="15" height="15" src="./strike.svg"/>' );
+                }else if( p2 < 10 && p2 + p3 == 10 ){
+                  $('#scores_table_'+i+'_'+j+'_3').html( '<img width="15" height="15" src="./spare.svg"/>' );
+                }
                 p += p3;
               }else if( j == 9 ){
                 var s2 = $('#scores_table_'+i+'_'+(j+1)+'_1').text();
@@ -270,6 +293,9 @@ function score( game_id ){
                 }else{
                   var s3 = $('#scores_table_'+i+'_'+j+'_3').text();
                   var p3 = parseInt( s3 );
+                  if( p3 == 10 ){
+                    $('#scores_table_'+i+'_'+j+'_3').html( '<img width="15" height="15" src="./strike.svg"/>' );
+                  }
                   p += p3;
                 }
               }else{
@@ -337,26 +363,7 @@ div{
   pointer-events: none;
   content: " ";
 }
-#memo_body{
 
-
-function sanitize( str ){
-  return str.replace(/"/g, '&#34;').replace(/'/g, '&#39;');
-}
-function sanitizeMemo( memo ){
-  if( memo.subject ){ memo.subject = sanitize( memo.subject ); }
-  if( memo.body ){ memo.body = sanitize( memo.body ); }
-  return memo;
-}
-</script>
-<style>
-body{
-  width:100%;
-  height:100%;
-}
-div{
-  height:100%;
-}
 #memo_body{
   width:100%;
   height:50%;
