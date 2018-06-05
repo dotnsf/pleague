@@ -286,7 +286,7 @@ app.get( '/stats', function( req, res ){
         var game_id = game.id;
 
         var params2 = [ game_id ];
-        var sql2 = 'SELECT id,start_lane,protector,score,rank from game_scores';
+        var sql2 = 'SELECT id,member_id,start_lane,protector,score,rank from game_scores';
         sql2 += ' where game_id = ?';
         if( member_id ){
           params2.push( member_id );
@@ -304,6 +304,7 @@ app.get( '/stats', function( req, res ){
             var game_scores_length = game_scores.length;
             var game_scores_count = 0;
 
+            //. #game_scores == 1 とは限らない（3かも）
             var score = game_scores[0].score;
             var start_lane = game_scores[0].start_lane;
             var startRight = ( start_lane == 'R' );
@@ -348,9 +349,17 @@ app.get( '/stats', function( req, res ){
                     if( flame_score.throw == 1 ){
                       pins0.push( flame_score.score );
                       if( startRight ){
-                        pinsR.push( flame_score.score );
+                        if( flame_score.flame % 2 ){
+                          pinsR.push( flame_score.score );
+                        }else{
+                          pinsL.push( flame_score.score );
+                        }
                       }else{
-                        pinsL.push( flame_score.score );
+                        if( flame_score.flame % 2 ){
+                          pinsL.push( flame_score.score );
+                        }else{
+                          pinsR.push( flame_score.score );
+                        }
                       }
 
                       //. split_flames
