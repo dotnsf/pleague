@@ -279,7 +279,7 @@ app.get( '/stats', function( req, res ){
       res.write( JSON.stringify( { status: false, sql: sql1, params: params1, error: error1 }, 2, null ) );
       res.end();
     }else{
-      console.log( '#games: ' + games.length );
+      //console.log( '#games: ' + games.length );
       var games_length = games.length;
       var games_count = 0;
       games.forEach( function( game ){
@@ -300,669 +300,674 @@ app.get( '/stats', function( req, res ){
             res.write( JSON.stringify( { status: false, sql: sql2, params: params2, error: error2 }, 2, null ) );
             res.end();
           }else{
-            console.log( '#game_scores: ' + game_scores.length );
+            //console.log( '#game_scores: ' + game_scores.length );
             var game_scores_length = game_scores.length;
             var game_scores_count = 0;
 
             //. #game_scores == 1 とは限らない（3かも）
-            var score = game_scores[0].score;
-            var start_lane = game_scores[0].start_lane;
-            var startRight = ( start_lane == 'R' );
+            game_scores.forEach( function( game_score ){
+              var score = game_score.score;
+              var start_lane = game_score.start_lane;
+              var startRight = ( start_lane == 'R' );
 
-            score0.push( score );
-            if( startRight ){
-              scoreR.push( score );
-            }else{
-              scoreL.push( score );
-            }
-
-            var params3 = [ game_id ];
-            var sql3 = 'SELECT id,flame,throw,score,split,pins from flame_scores';
-            sql3 += ' where game_id = ?';
-            if( member_id ){
-              params3.push( member_id );
-              sql3 += ' and member_id = ?'
-            }
-            sql3 += ' order by flame,throw';
-            connection.query( sql3, params3, function( error3, flame_scores, fields3 ){
-              if( error3 ){
-                console.log( 'error3' );
-                console.log( error3 );
-                res.write( JSON.stringify( { status: false, sql: sql3, params: params3, error: error3 }, 2, null ) );
-                res.end();
+              score0.push( score );
+              if( startRight ){
+                scoreR.push( score );
               }else{
-                //. flame_scores が準備できていないケースだと、ここは 0 になり、Response を返す処理に行かない
-                console.log( '#flame_scores: ' + flame_scores.length );
-                var flame_scores_length = flame_scores.length;
+                scoreL.push( score );
+              }
 
-                if( flame_scores.length > 0 ){
-                  var flame_scores_count = 0;
-
-                  var prev1_score = -1;
-                  var prev1_split = -1;
-                  var prev1_pins = -1;
-                  var prev2_score = -1;
-                  var prev2_split = -1;
-                  var prev2_pins = -1;
-
-                  flame_scores.forEach( function( flame_score ){
-                    if( flame_score.throw == 1 ){
-                      pins0.push( flame_score.score );
-                      if( startRight ){
-                        if( flame_score.flame % 2 ){
-                          pinsR.push( flame_score.score );
-                        }else{
-                          pinsL.push( flame_score.score );
-                        }
-                      }else{
-                        if( flame_score.flame % 2 ){
-                          pinsL.push( flame_score.score );
-                        }else{
-                          pinsR.push( flame_score.score );
-                        }
-                      }
-
-                      //. split_flames
-                      if( flame_score.split ){
-                        split_flames[0] ++;
-                        if( startRight ){
-                          if( flame_score.flame % 2 ){
-                            split_flames[1] ++;
-                          }else{
-                            split_flames[2] ++;
-                          }
-                        }else{
-                          if( flame_score.flame % 2 ){
-                            split_flames[2] ++;
-                          }else{
-                            split_flames[1] ++;
-                          }
-                        }
-                      }
-
-                      //. strike_flames
-                      if( flame_score.score == 10 ){
-                        strike_flames[0] ++;
-                        if( startRight ){
-                          if( flame_score.flame % 2 ){
-                            strike_flames[1] ++;
-                          }else{
-                            strike_flames[2] ++;
-                          }
-                        }else{
-                          if( flame_score.flame % 2 ){
-                            strike_flames[2] ++;
-                          }else{
-                            strike_flames[1] ++;
-                          }
-                        }
-                      }else{
-                        //. leave_right_flames, leave_left_flames
-                        var leave_right = leaveRight( flame_score.pins );
-                        if( leave_right ){
-                          leave_right_flames[0] ++;
-                          if( startRight ){
-                            if( flame_score.flame % 2 ){
-                              leave_right_flames[1] ++;
-                            }else{
-                              leave_right_flames[2] ++;
-                            }
-                          }else{
-                            if( flame_score.flame % 2 ){
-                              leave_right_flames[2] ++;
-                            }else{
-                              leave_right_flames[1] ++;
-                            }
-                          }
-                        }
-                        var leave_left = leaveLeft( flame_score.pins );
-                        if( leave_left ){
-                          leave_left_flames[0] ++;
-                          if( startRight ){
-                            if( flame_score.flame % 2 ){
-                              leave_left_flames[1] ++;
-                            }else{
-                              leave_left_flames[2] ++;
-                            }
-                          }else{
-                            if( flame_score.flame % 2 ){
-                              leave_left_flames[2] ++;
-                            }else{
-                              leave_left_flames[1] ++;
-                            }
-                          }
-                        }
-                      }
-
-                      //. strike_challenge_flames
-                      strike_challenge_flames[0] ++;
-                      if( startRight ){
-                        if( flame_score.flame % 2 ){
-                          strike_challenge_flames[1] ++;
-                        }else{
-                          strike_challenge_flames[2] ++;
-                        }
-                      }else{
-                        if( flame_score.flame % 2 ){
-                          strike_challenge_flames[2] ++;
-                        }else{
-                          strike_challenge_flames[1] ++;
-                        }
-                      }
-                    }
-
-                    if( flame_score.flame == 10 ){
-                      //. strike_challenge_flames & spare_challenge_flames
-                      if( flame_score.throw == 2 ){
-                        //. split_flames
-                        if( flame_score.split ){
-                          split_flames[0] ++;
-                          if( startRight ){
-                            if( flame_score.flame % 2 ){
-                              split_flames[1] ++;
-                            }else{
-                              split_flames[2] ++;
-                            }
-                          }else{
-                            if( flame_score.flame % 2 ){
-                              split_flames[2] ++;
-                            }else{
-                              split_flames[1] ++;
-                            }
-                          }
-                        }
-
-                        //. 10フレーム第二投
-                        if( prev1_score == 10 ){
-                          //. strike_flames
-                          if( flame_score.score == 10 ){
-                            strike_flames[0] ++;
-                            if( startRight ){
-                              if( flame_score.flame % 2 ){
-                                strike_flames[1] ++;
-                              }else{
-                                strike_flames[2] ++;
-                              }
-                            }else{
-                              if( flame_score.flame % 2 ){
-                                strike_flames[2] ++;
-                              }else{
-                                strike_flames[1] ++;
-                              }
-                            }
-                          }else{
-                            //. leave_right_flames, leave_left_flames
-                            var leave_right = leaveRight( flame_score.pins );
-                            if( leave_right ){
-                              leave_right_flames[0] ++;
-                              if( startRight ){
-                                if( flame_score.flame % 2 ){
-                                  leave_right_flames[1] ++;
-                                }else{
-                                  leave_right_flames[2] ++;
-                                }
-                              }else{
-                                if( flame_score.flame % 2 ){
-                                  leave_right_flames[2] ++;
-                                }else{
-                                  leave_right_flames[1] ++;
-                                }
-                              }
-                            }
-                            var leave_left = leaveLeft( flame_score.pins );
-                            if( leave_left ){
-                              leave_left_flames[0] ++;
-                              if( startRight ){
-                                if( flame_score.flame % 2 ){
-                                  leave_left_flames[1] ++;
-                                }else{
-                                  leave_left_flames[2] ++;
-                                }
-                              }else{
-                                if( flame_score.flame % 2 ){
-                                  leave_left_flames[2] ++;
-                                }else{
-                                  leave_left_flames[1] ++;
-                                }
-                              }
-                            }
-                          }
-
-                          strike_challenge_flames[0] ++;
-                          if( startRight ){
-                            if( flame_score.flame % 2 ){
-                              strike_challenge_flames[1] ++;
-                            }else{
-                              strike_challenge_flames[2] ++;
-                            }
-                          }else{
-                            if( flame_score.flame % 2 ){
-                              strike_challenge_flames[2] ++;
-                            }else{
-                              strike_challenge_flames[1] ++;
-                            }
-                          }
-                        }else{
-                          //. open_flames & split_cover_flames
-                          //. spare_flames
-                          if( prev1_score + flame_score.score == 10 ){
-                            spare_flames[0] ++;
-                            if( prev1_split ){
-                              split_cover_flames[0] ++;
-                            }
-                            if( startRight ){
-                              if( flame_score.flame % 2 ){
-                                spare_flames[1] ++;
-                                if( prev1_split ){
-                                  split_cover_flames[1] ++;
-                                }
-                              }else{
-                                spare_flames[2] ++;
-                                if( prev1_split ){
-                                  split_cover_flames[2] ++;
-                                }
-                              }
-                            }else{
-                              if( flame_score.flame % 2 ){
-                                spare_flames[2] ++;
-                                if( prev1_split ){
-                                  split_cover_flames[2] ++;
-                                }
-                              }else{
-                                spare_flames[1] ++;
-                                if( prev1_split ){
-                                  split_cover_flames[1] ++;
-                                }
-                              }
-                            }
-                          }else{
-                            open_flames[0] ++;
-                            if( startRight ){
-                              if( flame_score.flame % 2 ){
-                                open_flames[1] ++;
-                              }else{
-                                open_flames[2] ++;
-                              }
-                            }else{
-                              if( flame_score.flame % 2 ){
-                                open_flames[2] ++;
-                              }else{
-                                open_flames[1] ++;
-                              }
-                            }
-                          }
-
-                          spare_challenge_flames[0] ++;
-                          if( startRight ){
-                            if( flame_score.flame % 2 ){
-                              spare_challenge_flames[1] ++;
-                            }else{
-                              spare_challenge_flames[2] ++;
-                            }
-                          }else{
-                            if( flame_score.flame % 2 ){
-                              spare_challenge_flames[2] ++;
-                            }else{
-                              spare_challenge_flames[1] ++;
-                            }
-                          }
-                        }
-                      }else if( flame_score.throw == 3 ){
-                        //. split_flames
-                        if( flame_score.split ){
-                          split_flames[0] ++;
-                          if( startRight ){
-                            if( flame_score.flame % 2 ){
-                              split_flames[1] ++;
-                            }else{
-                              split_flames[2] ++;
-                            }
-                          }else{
-                            if( flame_score.flame % 2 ){
-                              split_flames[2] ++;
-                            }else{
-                              split_flames[1] ++;
-                            }
-                          }
-                        }
-
-                        //. 10フレーム第三投
-                        if( prev1_score == 10 || prev1_score + prev2_score == 10 ){
-                          //. strike_flames
-                          if( flame_score.score == 10 ){
-                            strike_flames[0] ++;
-                            if( startRight ){
-                              if( flame_score.flame % 2 ){
-                                strike_flames[1] ++;
-                              }else{
-                                strike_flames[2] ++;
-                              }
-                            }else{
-                              if( flame_score.flame % 2 ){
-                                strike_flames[2] ++;
-                              }else{
-                                strike_flames[1] ++;
-                              }
-                            }
-                          }else{
-                            //. leave_right_flames, leave_left_flames
-                            var leave_right = leaveRight( flame_score.pins );
-                            if( leave_right ){
-                              leave_right_flames[0] ++;
-                              if( startRight ){
-                                if( flame_score.flame % 2 ){
-                                  leave_right_flames[1] ++;
-                                }else{
-                                  leave_right_flames[2] ++;
-                                }
-                              }else{
-                                if( flame_score.flame % 2 ){
-                                  leave_right_flames[2] ++;
-                                }else{
-                                  leave_right_flames[1] ++;
-                                }
-                              }
-                            }
-                            var leave_left = leaveLeft( flame_score.pins );
-                            if( leave_left ){
-                              leave_left_flames[0] ++;
-                              if( startRight ){
-                                if( flame_score.flame % 2 ){
-                                  leave_left_flames[1] ++;
-                                }else{
-                                  leave_left_flames[2] ++;
-                                }
-                              }else{
-                                if( flame_score.flame % 2 ){
-                                  leave_left_flames[2] ++;
-                                }else{
-                                  leave_left_flames[1] ++;
-                                }
-                              }
-                            }
-                          }
-
-                          strike_challenge_flames[0] ++;
-                          if( startRight ){
-                            if( flame_score.flame % 2 ){
-                              strike_challenge_flames[1] ++;
-                            }else{
-                              strike_challenge_flames[2] ++;
-                            }
-                          }else{
-                            if( flame_score.flame % 2 ){
-                              strike_challenge_flames[2] ++;
-                            }else{
-                              strike_challenge_flames[1] ++;
-                            }
-                          }
-                        }else{
-                          //. open_flames & split_cover_flames
-                          //. spare_flames
-                          if( prev1_score + flame_score.score == 10 ){
-                            spare_flames[0] ++;
-                            if( prev1_split ){
-                              split_cover_flames[0] ++;
-                            }
-                            if( startRight ){
-                              if( flame_score.flame % 2 ){
-                                spare_flames[1] ++;
-                                if( prev1_split ){
-                                  split_cover_flames[1] ++;
-                                }
-                              }else{
-                                spare_flames[2] ++;
-                                if( prev1_split ){
-                                  split_cover_flames[2] ++;
-                                }
-                              }
-                            }else{
-                              if( flame_score.flame % 2 ){
-                                spare_flames[2] ++;
-                                if( prev1_split ){
-                                  split_cover_flames[2] ++;
-                                }
-                              }else{
-                                spare_flames[1] ++;
-                                if( prev1_split ){
-                                  split_cover_flames[1] ++;
-                                }
-                              }
-                            }
-                          }else{
-                            open_flames[0] ++;
-                            if( startRight ){
-                              if( flame_score.flame % 2 ){
-                                open_flames[1] ++;
-                              }else{
-                                open_flames[2] ++;
-                              }
-                            }else{
-                              if( flame_score.flame % 2 ){
-                                open_flames[2] ++;
-                              }else{
-                                open_flames[1] ++;
-                              }
-                            }
-                          }
-
-                          spare_challenge_flames[0] ++;
-                          if( startRight ){
-                            if( flame_score.flame % 2 ){
-                              spare_challenge_flames[1] ++;
-                              }else{
-                              spare_challenge_flames[2] ++;
-                            }
-                          }else{
-                            if( flame_score.flame % 2 ){
-                              spare_challenge_flames[2] ++;
-                            }else{
-                              spare_challenge_flames[1] ++;
-                            }
-                          }
-                        }
-                      }
-                    }else{
-                      if( flame_score.throw == 2 ){
-                        //. open_flames, spare_flames, split_cover_flames
-                        if( prev1_score + flame_score.score == 10 ){
-                          spare_flames[0] ++;
-                          if( prev1_split ){
-                            split_cover_flames[0] ++;
-                          }
-                          if( startRight ){
-                            if( flame_score.flame % 2 ){
-                              spare_flames[1] ++;
-                              if( prev1_split ){
-                                split_cover_flames[1] ++;
-                              }
-                            }else{
-                              spare_flames[2] ++;
-                              if( prev1_split ){
-                                split_cover_flames[2] ++;
-                              }
-                            }
-                          }else{
-                            if( flame_score.flame % 2 ){
-                              spare_flames[2] ++;
-                              if( prev1_split ){
-                                split_cover_flames[2] ++;
-                              }
-                            }else{
-                              spare_flames[1] ++;
-                              if( prev1_split ){
-                                split_cover_flames[1] ++;
-                              }
-                            }
-                          }
-                        }else{
-                          open_flames[0] ++;
-                          if( startRight ){
-                            if( flame_score.flame % 2 ){
-                              open_flames[1] ++;
-                            }else{
-                              open_flames[2] ++;
-                            }
-                          }else{
-                            if( flame_score.flame % 2 ){
-                              open_flames[2] ++;
-                            }else{
-                              open_flames[1] ++;
-                            }
-                          }
-                        }
-
-                        spare_challenge_flames[0] ++;
-                        if( startRight ){
-                          if( flame_score.flame % 2 ){
-                            spare_challenge_flames[1] ++;
-                          }else{
-                            spare_challenge_flames[2] ++;
-                          }
-                        }else{
-                          if( flame_score.flame % 2 ){
-                            spare_challenge_flames[2] ++;
-                          }else{
-                            spare_challenge_flames[1] ++;
-                          }
-                        }
-                      }
-                    }
-
-                    flame_scores_count ++;
-                    console.log( ' flame_scores: ' + flame_scores_count + '/' + flame_scores_length );
-                    if( flame_scores_count == flame_scores_length ){
-                      game_scores_count ++;
-                    }
-
-                    prev2_score = prev1_score;
-                    prev2_split = prev1_split;
-                    prev2_pins = prev1_pins;
-                    prev1_score = flame_score.score;
-                    prev1_split = flame_score.split;
-                    prev1_pins = flame_score.pins;
-                  });  //. flame_scores.forEach( function( flame_score ){
+              var params3 = [ game_id ];
+              var sql3 = 'SELECT id,flame,throw,score,split,pins from flame_scores';
+              sql3 += ' where game_id = ?';
+              if( member_id ){
+                params3.push( member_id );
+                sql3 += ' and member_id = ?'
+              }else{
+                params3.push( game_score.member_id );
+                sql3 += ' and member_id = ?'
+              }
+              sql3 += ' order by flame,throw';
+              connection.query( sql3, params3, function( error3, flame_scores, fields3 ){
+                if( error3 ){
+                  console.log( 'error3' );
+                  console.log( error3 );
+                  res.write( JSON.stringify( { status: false, sql: sql3, params: params3, error: error3 }, 2, null ) );
+                  res.end();
                 }else{
-                  game_scores_count ++;
-                }
+                  //. flame_scores が準備できていないケースだと、ここは 0 になり、Response を返す処理に行かない
+                  //console.log( '#flame_scores: ' + flame_scores.length );
+                  var flame_scores_length = flame_scores.length;
 
-                console.log( ' game_scores: ' + game_scores_count + '/' + game_scores_length );
+                  if( flame_scores.length > 0 ){
+                    var flame_scores_count = 0;
 
-                if( game_scores_count == game_scores_length ){
-                  games_count ++;
-                  console.log( ' games: ' + games_count + '/' + games_length );
-                  if( games_count == games_length ){
-                    //. avg
-                    if( score0.length > 0 ){
-                      for( var i = 0; i < score0.length; i ++ ){
-                        avg_score[0] += score0[i];
-                      }
-                      avg_score[0] /= score0.length;
-                    }
-                    if( scoreR.length > 0 ){
-                      for( var i = 0; i < scoreR.length; i ++ ){
-                        avg_score[1] += scoreR[i];
-                      }
-                      avg_score[1] /= scoreR.length;
-                    }
-                    if( scoreL.length > 0 ){
-                      for( var i = 0; i < scoreL.length; i ++ ){
-                        avg_score[2] += scoreL[i];
-                      }
-                      avg_score[2] /= scoreL.length;
-                    }
-                    if( pins0.length > 0 ){
-                      for( var i = 0; i < pins0.length; i ++ ){
-                        avg_pins[0] += pins0[i];
-                      }
-                      avg_pins[0] /= pins0.length;
-                    }
-                    if( pinsR.length > 0 ){
-                      for( var i = 0; i < pinsR.length; i ++ ){
-                        avg_pins[1] += pinsR[i];
-                      }
-                      avg_pins[1] /= pinsR.length;
-                    }
-                    if( pinsL.length > 0 ){
-                      for( var i = 0; i < pinsL.length; i ++ ){
-                        avg_pins[2] += pinsL[i];
-                      }
-                      avg_pins[2] /= pinsL.length;
-                    }
+                    var prev1_score = -1;
+                    var prev1_split = -1;
+                    var prev1_pins = -1;
+                    var prev2_score = -1;
+                    var prev2_split = -1;
+                    var prev2_pins = -1;
 
-                    //. va, stdev
-                    if( score0.length > 0 ){
-                      for( var i = 0; i < score0.length; i ++ ){
-                        va_score[0] += ( ( score0[i] - avg_score[0] ) * ( score0[i] - avg_score[0] ) );
-                      }
-                      va_score[0] /= score0.length;
-                      stdev_score[0] = Math.sqrt( va_score[0] );
-                    }
-                    if( scoreR.length > 0 ){
-                      for( var i = 0; i < scoreR.length; i ++ ){
-                        va_score[1] += ( ( scoreR[i] - avg_score[1] ) * ( scoreR[i] - avg_score[1] ) );
-                      }
-                      va_score[1] /= scoreR.length;
-                      stdev_score[1] = Math.sqrt( va_score[1] );
-                    }
-                    if( scoreL.length > 0 ){
-                      for( var i = 0; i < scoreL.length; i ++ ){
-                        va_score[2] += ( ( scoreL[i] - avg_score[2] ) * ( scoreL[i] - avg_score[2] ) );
-                      }
-                      va_score[2] /= scoreL.length;
-                      stdev_score[2] = Math.sqrt( va_score[2] );
-                    }
-                    if( pins0.length > 0 ){
-                      for( var i = 0; i < pins0.length; i ++ ){
-                        va_pins[0] += ( ( pins0[i] - avg_pins[0] ) * ( pins0[i] - avg_pins[0] ) );
-                      }
-                      va_pins[0] /= pins0.length;
-                      stdev_pins[0] = Math.sqrt( va_pins[0] );
-                    }
-                    if( pinsR.length > 0 ){
-                      for( var i = 0; i < pinsR.length; i ++ ){
-                        va_pins[1] += ( ( pinsR[i] - avg_pins[1] ) * ( pinsR[i] - avg_pins[1] ) );
-                      }
-                      va_pins[1] /= pinsR.length;
-                      stdev_pins[1] = Math.sqrt( va_pins[1] );
-                    }
-                    if( pinsL.length > 0 ){
-                      for( var i = 0; i < pinsL.length; i ++ ){
-                        va_pins[2] += ( ( pinsL[i] - avg_pins[2] ) * ( pinsL[i] - avg_pins[2] ) );
-                      }
-                      va_pins[2] /= pinsL.length;
-                      stdev_pins[2] = Math.sqrt( va_pins[2] );
-                    }
+                    flame_scores.forEach( function( flame_score ){
+                      if( flame_score.throw == 1 ){
+                        pins0.push( flame_score.score );
+                        if( startRight ){
+                          if( flame_score.flame % 2 ){
+                            pinsR.push( flame_score.score );
+                          }else{
+                            pinsL.push( flame_score.score );
+                          }
+                        }else{
+                          if( flame_score.flame % 2 ){
+                            pinsL.push( flame_score.score );
+                          }else{
+                            pinsR.push( flame_score.score );
+                          }
+                        }
 
-                    res.write( JSON.stringify( {
-                      status: true,
-                      score: score0,
-                      scoreR: scoreR,
-                      scoreL: scoreL,
-                      pins: pins0,
-                      pinsR: pinsR,
-                      pinsL: pinsL,
-                      avg_score: avg_score,
-                      va_score: va_score,
-                      stdev_score: stdev_score,
-                      avg_pins: avg_pins,
-                      va_pins: va_pins,
-                      stdev_pins: stdev_pins,
-                      strike_challenge_flames: strike_challenge_flames,
-                      spare_challenge_flames: spare_challenge_flames,
-                      strike_flames: strike_flames,
-                      spare_flames: spare_flames,
-                      open_flames: open_flames,
-                      split_flames: split_flames,
-                      split_cover_flames: split_cover_flames,
-                      leave_right_flames: leave_right_flames,
-                      leave_left_flames: leave_left_flames
-                    }, 2, null ) );
-                    res.end();
+                        //. split_flames
+                        if( flame_score.split ){
+                          split_flames[0] ++;
+                          if( startRight ){
+                            if( flame_score.flame % 2 ){
+                              split_flames[1] ++;
+                            }else{
+                              split_flames[2] ++;
+                            }
+                          }else{
+                            if( flame_score.flame % 2 ){
+                              split_flames[2] ++;
+                            }else{
+                              split_flames[1] ++;
+                            }
+                          }
+                        }
+
+                        //. strike_flames
+                        if( flame_score.score == 10 ){
+                          strike_flames[0] ++;
+                          if( startRight ){
+                            if( flame_score.flame % 2 ){
+                              strike_flames[1] ++;
+                            }else{
+                              strike_flames[2] ++;
+                            }
+                          }else{
+                            if( flame_score.flame % 2 ){
+                              strike_flames[2] ++;
+                            }else{
+                              strike_flames[1] ++;
+                            }
+                          }
+                        }else{
+                          //. leave_right_flames, leave_left_flames
+                          var leave_right = leaveRight( flame_score.pins );
+                          if( leave_right ){
+                            leave_right_flames[0] ++;
+                            if( startRight ){
+                              if( flame_score.flame % 2 ){
+                                leave_right_flames[1] ++;
+                              }else{
+                                leave_right_flames[2] ++;
+                              }
+                            }else{
+                              if( flame_score.flame % 2 ){
+                                leave_right_flames[2] ++;
+                              }else{
+                                leave_right_flames[1] ++;
+                              }
+                            }
+                          }
+                          var leave_left = leaveLeft( flame_score.pins );
+                          if( leave_left ){
+                            leave_left_flames[0] ++;
+                            if( startRight ){
+                              if( flame_score.flame % 2 ){
+                                leave_left_flames[1] ++;
+                              }else{
+                                leave_left_flames[2] ++;
+                              }
+                            }else{
+                              if( flame_score.flame % 2 ){
+                                leave_left_flames[2] ++;
+                              }else{
+                                leave_left_flames[1] ++;
+                              }
+                            }
+                          }
+                        }
+
+                        //. strike_challenge_flames
+                        strike_challenge_flames[0] ++;
+                        if( startRight ){
+                          if( flame_score.flame % 2 ){
+                            strike_challenge_flames[1] ++;
+                          }else{
+                            strike_challenge_flames[2] ++;
+                          }
+                        }else{
+                          if( flame_score.flame % 2 ){
+                            strike_challenge_flames[2] ++;
+                          }else{
+                            strike_challenge_flames[1] ++;
+                          }
+                        }
+                      }
+
+                      if( flame_score.flame == 10 ){
+                        //. strike_challenge_flames & spare_challenge_flames
+                        if( flame_score.throw == 2 ){
+                          //. split_flames
+                          if( flame_score.split ){
+                            split_flames[0] ++;
+                            if( startRight ){
+                              if( flame_score.flame % 2 ){
+                                split_flames[1] ++;
+                              }else{
+                                split_flames[2] ++;
+                              }
+                            }else{
+                              if( flame_score.flame % 2 ){
+                                split_flames[2] ++;
+                              }else{
+                                split_flames[1] ++;
+                              }
+                            }
+                          }
+
+                          //. 10フレーム第二投
+                          if( prev1_score == 10 ){
+                            //. strike_flames
+                            if( flame_score.score == 10 ){
+                              strike_flames[0] ++;
+                              if( startRight ){
+                                if( flame_score.flame % 2 ){
+                                  strike_flames[1] ++;
+                                }else{
+                                  strike_flames[2] ++;
+                                }
+                              }else{
+                                if( flame_score.flame % 2 ){
+                                  strike_flames[2] ++;
+                                }else{
+                                  strike_flames[1] ++;
+                                }
+                              }
+                            }else{
+                              //. leave_right_flames, leave_left_flames
+                              var leave_right = leaveRight( flame_score.pins );
+                              if( leave_right ){
+                                leave_right_flames[0] ++;
+                                if( startRight ){
+                                  if( flame_score.flame % 2 ){
+                                    leave_right_flames[1] ++;
+                                  }else{
+                                    leave_right_flames[2] ++;
+                                  }
+                                }else{
+                                  if( flame_score.flame % 2 ){
+                                    leave_right_flames[2] ++;
+                                  }else{
+                                    leave_right_flames[1] ++;
+                                  }
+                                }
+                              }
+                              var leave_left = leaveLeft( flame_score.pins );
+                              if( leave_left ){
+                                leave_left_flames[0] ++;
+                                if( startRight ){
+                                  if( flame_score.flame % 2 ){
+                                    leave_left_flames[1] ++;
+                                  }else{
+                                    leave_left_flames[2] ++;
+                                  }
+                                }else{
+                                  if( flame_score.flame % 2 ){
+                                    leave_left_flames[2] ++;
+                                  }else{
+                                    leave_left_flames[1] ++;
+                                  }
+                                }
+                              }
+                            }
+
+                            strike_challenge_flames[0] ++;
+                            if( startRight ){
+                              if( flame_score.flame % 2 ){
+                                strike_challenge_flames[1] ++;
+                              }else{
+                                strike_challenge_flames[2] ++;
+                              }
+                            }else{
+                              if( flame_score.flame % 2 ){
+                                strike_challenge_flames[2] ++;
+                              }else{
+                                strike_challenge_flames[1] ++;
+                              }
+                            }
+                          }else{
+                            //. open_flames & split_cover_flames
+                            //. spare_flames
+                            if( prev1_score + flame_score.score == 10 ){
+                              spare_flames[0] ++;
+                              if( prev1_split ){
+                                split_cover_flames[0] ++;
+                              }
+                              if( startRight ){
+                                if( flame_score.flame % 2 ){
+                                  spare_flames[1] ++;
+                                  if( prev1_split ){
+                                    split_cover_flames[1] ++;
+                                  }
+                                }else{
+                                  spare_flames[2] ++;
+                                  if( prev1_split ){
+                                    split_cover_flames[2] ++;
+                                  }
+                                }
+                              }else{
+                                if( flame_score.flame % 2 ){
+                                  spare_flames[2] ++;
+                                  if( prev1_split ){
+                                    split_cover_flames[2] ++;
+                                  }
+                                }else{
+                                  spare_flames[1] ++;
+                                  if( prev1_split ){
+                                    split_cover_flames[1] ++;
+                                  }
+                                }
+                              }
+                            }else{
+                              open_flames[0] ++;
+                              if( startRight ){
+                                if( flame_score.flame % 2 ){
+                                  open_flames[1] ++;
+                                }else{
+                                  open_flames[2] ++;
+                                }
+                              }else{
+                                if( flame_score.flame % 2 ){
+                                  open_flames[2] ++;
+                                }else{
+                                  open_flames[1] ++;
+                                }
+                              }
+                            }
+
+                            spare_challenge_flames[0] ++;
+                            if( startRight ){
+                              if( flame_score.flame % 2 ){
+                                spare_challenge_flames[1] ++;
+                              }else{
+                                spare_challenge_flames[2] ++;
+                              }
+                            }else{
+                              if( flame_score.flame % 2 ){
+                                spare_challenge_flames[2] ++;
+                              }else{
+                                spare_challenge_flames[1] ++;
+                              }
+                            }
+                          }
+                        }else if( flame_score.throw == 3 ){
+                          //. split_flames
+                          if( flame_score.split ){
+                            split_flames[0] ++;
+                            if( startRight ){
+                              if( flame_score.flame % 2 ){
+                                split_flames[1] ++;
+                              }else{
+                                split_flames[2] ++;
+                              }
+                            }else{
+                              if( flame_score.flame % 2 ){
+                                split_flames[2] ++;
+                              }else{
+                                split_flames[1] ++;
+                              }
+                            }
+                          }
+
+                          //. 10フレーム第三投
+                          if( prev1_score == 10 || prev1_score + prev2_score == 10 ){
+                            //. strike_flames
+                            if( flame_score.score == 10 ){
+                              strike_flames[0] ++;
+                              if( startRight ){
+                                if( flame_score.flame % 2 ){
+                                  strike_flames[1] ++;
+                                }else{
+                                  strike_flames[2] ++;
+                                }
+                              }else{
+                                if( flame_score.flame % 2 ){
+                                  strike_flames[2] ++;
+                                }else{
+                                  strike_flames[1] ++;
+                                }
+                              }
+                            }else{
+                              //. leave_right_flames, leave_left_flames
+                              var leave_right = leaveRight( flame_score.pins );
+                              if( leave_right ){
+                                leave_right_flames[0] ++;
+                                if( startRight ){
+                                  if( flame_score.flame % 2 ){
+                                    leave_right_flames[1] ++;
+                                  }else{
+                                    leave_right_flames[2] ++;
+                                  }
+                                }else{
+                                  if( flame_score.flame % 2 ){
+                                    leave_right_flames[2] ++;
+                                  }else{
+                                    leave_right_flames[1] ++;
+                                  }
+                                }
+                              }
+                              var leave_left = leaveLeft( flame_score.pins );
+                              if( leave_left ){
+                                leave_left_flames[0] ++;
+                                if( startRight ){
+                                  if( flame_score.flame % 2 ){
+                                    leave_left_flames[1] ++;
+                                  }else{
+                                    leave_left_flames[2] ++;
+                                  }
+                                }else{
+                                  if( flame_score.flame % 2 ){
+                                    leave_left_flames[2] ++;
+                                  }else{
+                                    leave_left_flames[1] ++;
+                                  }
+                                }
+                              }
+                            }
+
+                            strike_challenge_flames[0] ++;
+                            if( startRight ){
+                              if( flame_score.flame % 2 ){
+                                strike_challenge_flames[1] ++;
+                              }else{
+                                strike_challenge_flames[2] ++;
+                              }
+                            }else{
+                              if( flame_score.flame % 2 ){
+                                strike_challenge_flames[2] ++;
+                              }else{
+                                strike_challenge_flames[1] ++;
+                              }
+                            }
+                          }else{
+                            //. open_flames & split_cover_flames
+                            //. spare_flames
+                            if( prev1_score + flame_score.score == 10 ){
+                              spare_flames[0] ++;
+                              if( prev1_split ){
+                                split_cover_flames[0] ++;
+                              }
+                              if( startRight ){
+                                if( flame_score.flame % 2 ){
+                                  spare_flames[1] ++;
+                                  if( prev1_split ){
+                                    split_cover_flames[1] ++;
+                                  }
+                                }else{
+                                  spare_flames[2] ++;
+                                  if( prev1_split ){
+                                    split_cover_flames[2] ++;
+                                  }
+                                }
+                              }else{
+                                if( flame_score.flame % 2 ){
+                                  spare_flames[2] ++;
+                                  if( prev1_split ){
+                                    split_cover_flames[2] ++;
+                                  }
+                                }else{
+                                  spare_flames[1] ++;
+                                  if( prev1_split ){
+                                    split_cover_flames[1] ++;
+                                  }
+                                }
+                              }
+                            }else{
+                              open_flames[0] ++;
+                              if( startRight ){
+                                if( flame_score.flame % 2 ){
+                                  open_flames[1] ++;
+                                }else{
+                                  open_flames[2] ++;
+                                }
+                              }else{
+                                if( flame_score.flame % 2 ){
+                                  open_flames[2] ++;
+                                }else{
+                                  open_flames[1] ++;
+                                }
+                              }
+                            }
+
+                            spare_challenge_flames[0] ++;
+                            if( startRight ){
+                              if( flame_score.flame % 2 ){
+                                spare_challenge_flames[1] ++;
+                                }else{
+                                spare_challenge_flames[2] ++;
+                              }
+                            }else{
+                              if( flame_score.flame % 2 ){
+                                spare_challenge_flames[2] ++;
+                              }else{
+                                spare_challenge_flames[1] ++;
+                              }
+                            }
+                          }
+                        }
+                      }else{
+                        if( flame_score.throw == 2 ){
+                          //. open_flames, spare_flames, split_cover_flames
+                          if( prev1_score + flame_score.score == 10 ){
+                            spare_flames[0] ++;
+                            if( prev1_split ){
+                              split_cover_flames[0] ++;
+                            }
+                            if( startRight ){
+                              if( flame_score.flame % 2 ){
+                                spare_flames[1] ++;
+                                if( prev1_split ){
+                                  split_cover_flames[1] ++;
+                                }
+                              }else{
+                                spare_flames[2] ++;
+                                if( prev1_split ){
+                                  split_cover_flames[2] ++;
+                                }
+                              }
+                            }else{
+                              if( flame_score.flame % 2 ){
+                                spare_flames[2] ++;
+                                if( prev1_split ){
+                                  split_cover_flames[2] ++;
+                                }
+                              }else{
+                                spare_flames[1] ++;
+                                if( prev1_split ){
+                                  split_cover_flames[1] ++;
+                                }
+                              }
+                            }
+                          }else{
+                            open_flames[0] ++;
+                            if( startRight ){
+                              if( flame_score.flame % 2 ){
+                                open_flames[1] ++;
+                              }else{
+                                open_flames[2] ++;
+                              }
+                            }else{
+                              if( flame_score.flame % 2 ){
+                                open_flames[2] ++;
+                              }else{
+                                open_flames[1] ++;
+                              }
+                            }
+                          }
+
+                          spare_challenge_flames[0] ++;
+                          if( startRight ){
+                            if( flame_score.flame % 2 ){
+                              spare_challenge_flames[1] ++;
+                            }else{
+                              spare_challenge_flames[2] ++;
+                            }
+                          }else{
+                            if( flame_score.flame % 2 ){
+                              spare_challenge_flames[2] ++;
+                            }else{
+                              spare_challenge_flames[1] ++;
+                            }
+                          }
+                        }
+                      }
+
+                      flame_scores_count ++;
+                      //console.log( ' flame_scores: ' + flame_scores_count + '/' + flame_scores_length );
+                      if( flame_scores_count == flame_scores_length ){
+                        game_scores_count ++;
+                      }
+
+                      prev2_score = prev1_score;
+                      prev2_split = prev1_split;
+                      prev2_pins = prev1_pins;
+                      prev1_score = flame_score.score;
+                      prev1_split = flame_score.split;
+                      prev1_pins = flame_score.pins;
+                    });  //. flame_scores.forEach( function( flame_score ){
+                  }else{
+                    game_scores_count ++;
+                  }
+
+                  //console.log( ' game_scores: ' + game_scores_count + '/' + game_scores_length );
+
+                  if( game_scores_count == game_scores_length ){
+                    games_count ++;
+                    //console.log( ' games: ' + games_count + '/' + games_length );
+                    if( games_count == games_length ){
+                      //. avg
+                      if( score0.length > 0 ){
+                        for( var i = 0; i < score0.length; i ++ ){
+                          avg_score[0] += score0[i];
+                        }
+                        avg_score[0] /= score0.length;
+                      }
+                      if( scoreR.length > 0 ){
+                        for( var i = 0; i < scoreR.length; i ++ ){
+                          avg_score[1] += scoreR[i];
+                        }
+                        avg_score[1] /= scoreR.length;
+                      }
+                      if( scoreL.length > 0 ){
+                        for( var i = 0; i < scoreL.length; i ++ ){
+                          avg_score[2] += scoreL[i];
+                        }
+                        avg_score[2] /= scoreL.length;
+                      }
+                      if( pins0.length > 0 ){
+                        for( var i = 0; i < pins0.length; i ++ ){
+                          avg_pins[0] += pins0[i];
+                        }
+                        avg_pins[0] /= pins0.length;
+                      }
+                      if( pinsR.length > 0 ){
+                        for( var i = 0; i < pinsR.length; i ++ ){
+                          avg_pins[1] += pinsR[i];
+                        }
+                        avg_pins[1] /= pinsR.length;
+                      }
+                      if( pinsL.length > 0 ){
+                        for( var i = 0; i < pinsL.length; i ++ ){
+                          avg_pins[2] += pinsL[i];
+                        }
+                        avg_pins[2] /= pinsL.length;
+                      }
+
+                      //. va, stdev
+                      if( score0.length > 0 ){
+                        for( var i = 0; i < score0.length; i ++ ){
+                          va_score[0] += ( ( score0[i] - avg_score[0] ) * ( score0[i] - avg_score[0] ) );
+                        }
+                        va_score[0] /= score0.length;
+                        stdev_score[0] = Math.sqrt( va_score[0] );
+                      }
+                      if( scoreR.length > 0 ){
+                        for( var i = 0; i < scoreR.length; i ++ ){
+                          va_score[1] += ( ( scoreR[i] - avg_score[1] ) * ( scoreR[i] - avg_score[1] ) );
+                        }
+                        va_score[1] /= scoreR.length;
+                        stdev_score[1] = Math.sqrt( va_score[1] );
+                      }
+                      if( scoreL.length > 0 ){
+                        for( var i = 0; i < scoreL.length; i ++ ){
+                          va_score[2] += ( ( scoreL[i] - avg_score[2] ) * ( scoreL[i] - avg_score[2] ) );
+                        }
+                        va_score[2] /= scoreL.length;
+                        stdev_score[2] = Math.sqrt( va_score[2] );
+                      }
+                      if( pins0.length > 0 ){
+                        for( var i = 0; i < pins0.length; i ++ ){
+                          va_pins[0] += ( ( pins0[i] - avg_pins[0] ) * ( pins0[i] - avg_pins[0] ) );
+                        }
+                        va_pins[0] /= pins0.length;
+                        stdev_pins[0] = Math.sqrt( va_pins[0] );
+                      }
+                      if( pinsR.length > 0 ){
+                        for( var i = 0; i < pinsR.length; i ++ ){
+                          va_pins[1] += ( ( pinsR[i] - avg_pins[1] ) * ( pinsR[i] - avg_pins[1] ) );
+                        }
+                        va_pins[1] /= pinsR.length;
+                        stdev_pins[1] = Math.sqrt( va_pins[1] );
+                      }
+                      if( pinsL.length > 0 ){
+                        for( var i = 0; i < pinsL.length; i ++ ){
+                          va_pins[2] += ( ( pinsL[i] - avg_pins[2] ) * ( pinsL[i] - avg_pins[2] ) );
+                        }
+                        va_pins[2] /= pinsL.length;
+                        stdev_pins[2] = Math.sqrt( va_pins[2] );
+                      }
+
+                      res.write( JSON.stringify( {
+                        status: true,
+                        score: score0,
+                        scoreR: scoreR,
+                        scoreL: scoreL,
+                        pins: pins0,
+                        pinsR: pinsR,
+                        pinsL: pinsL,
+                        avg_score: avg_score,
+                        va_score: va_score,
+                        stdev_score: stdev_score,
+                        avg_pins: avg_pins,
+                        va_pins: va_pins,
+                        stdev_pins: stdev_pins,
+                        strike_challenge_flames: strike_challenge_flames,
+                        spare_challenge_flames: spare_challenge_flames,
+                        strike_flames: strike_flames,
+                        spare_flames: spare_flames,
+                        open_flames: open_flames,
+                        split_flames: split_flames,
+                        split_cover_flames: split_cover_flames,
+                        leave_right_flames: leave_right_flames,
+                        leave_left_flames: leave_left_flames
+                      }, 2, null ) );
+                      res.end();
+                    }
                   }
                 }
-              }
-            });  //. connection.query( sql3, params3, function( error3, flame_scores, fields3 ){
+              });  //. connection.query( sql3, params3, function( error3, flame_scores, fields3 ){
+            });
           }
         });
       });
