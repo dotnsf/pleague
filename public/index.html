@@ -10,6 +10,7 @@
 <script src="https://code.jquery.com/jquery-2.0.3.min.js"></script>
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet"/>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.4/Chart.min.js"></script>
 <script src="./cvi_busy_lib.js"></script>
 
 <script>
@@ -64,6 +65,10 @@ function init(){
   }, function(){
     $(this).children('p').first().hide();
   });
+
+  //. のいちゃん
+  $('#members').css( 'display', 'none' );
+  member( 3 );
 }
 
 var members = [];
@@ -132,11 +137,37 @@ function member( member_id ){
     success: function( one_result ){
       console.log( one_result );
 
+      var score_ctx = document.getElementById( 'score_chart' ).getContext( '2d' );
+      var score_chart = new Chart( score_ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Recent Scores',
+            data: one_result.score,
+            backgroundColor: 'rgba(153,255,51,0.4)'
+          }]
+        }
+      });
+      var pins_ctx = document.getElementById( 'pins_chart' ).getContext( '2d' );
+      var pins_chart = new Chart( pins_ctx, {
+        type: 'pie',
+        data: {
+          labels: ['左','右'],
+          datasets: [{
+            label: '' + one_result.avg_pins[0],
+            data: [one_result.avg_pins[1], one_result.avg_pins[2]],
+            backgroundColor: ['#ff0000', '#0000ff']
+          }]
+        }
+      });
+
       $.ajax({
         type: 'GET',
         url: '/stats',
         success: function( all_result ){
           console.log( all_result );
+
         },
         error: function( err ){
           console.log( err );
@@ -400,6 +431,15 @@ div{
 <div class="container">
   <div class="card-columns" id="members">
   </div>
+</div>
+
+<div class="container" id="stats">
+  <table>
+    <tr>
+      <td><canvas id="score_chart"></canvas></td>
+      <td><canvas id="pins_chart"></canvas></td>
+    </tr>
+  </table>
 </div>
 
 <div class="container" id="games">
@@ -766,6 +806,9 @@ div{
       </tr>
     </tbody>
   </table>
+</div>
+
+<div class="container" id="dummy" style="padding: 90px 0">
 </div>
 
 </body>

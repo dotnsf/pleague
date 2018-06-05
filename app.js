@@ -234,7 +234,7 @@ app.get( '/spare.svg', function( req, res ){
 app.get( '/stats', function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
   var member_id = req.query.member_id;
-  console.log( 'GET /stats?member_id=' + member_id );
+  //console.log( 'GET /stats?member_id=' + member_id );
 
   //. ゲームスコアと一投目のピンカウント平均, 分散, 標準偏差
   var score0 = [], scoreR = [], scoreL = [];
@@ -271,7 +271,7 @@ app.get( '/stats', function( req, res ){
     params1.push( member_id );
     sql1 += 'where member_id = ? '
   }
-  sql1 += ') order by id';
+  sql1 += ') order by season, number, stage, block'; // ') order by id';
   connection.query( sql1, params1, function( error1, games, fields1 ){
     if( error1 ){
       console.log( 'error1' );
